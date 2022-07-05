@@ -1,8 +1,10 @@
 package com.example.keanimationtransitions2.ui.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.*
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.transition.ArcMotion
@@ -43,29 +45,41 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
-        binding.myContainerAnim3.setOnClickListener {
-            val changeBounds = ChangeBounds()
-            changeBounds.setPathMotion (ArcMotion())
-            changeBounds.duration = 5000                // скорость перехода !
-
-            TransitionManager.beginDelayedTransition(
-                binding.myContainerAnim3,
-                changeBounds
-            )
-
-            //
-            toRightAnimation = !toRightAnimation
-
-            val params : FrameLayout.LayoutParams = binding.btn333.layoutParams as FrameLayout.LayoutParams
-            params.gravity = if (toRightAnimation) Gravity.END or Gravity.BOTTOM
-            else Gravity.START or Gravity.TOP
-            binding.btn333.layoutParams = params
-
-
+        binding.myContainerAnim3.setOnTouchListener { v, event ->
+            x = event?.x ?: 0f
+            y = event?.y ?: 0f
+            when (event?.action) {
+                MotionEvent.ACTION_DOWN -> {
+//                    Toast.makeText(requireContext(), "x: $x, y: $y", Toast.LENGTH_SHORT).show()
+                    mClickListener()
+                }
+            }
+            v?.onTouchEvent(event) ?: true
         }
+    }
+
+    private fun mClickListener () {
+        val changeBounds = ChangeBounds()
+        changeBounds.setPathMotion (ArcMotion())
+        changeBounds.duration = 1500
+
+        TransitionManager.beginDelayedTransition(
+            binding.myContainerAnim3,
+            changeBounds
+        )
+
+        val params : FrameLayout.LayoutParams = binding.btn333.layoutParams as FrameLayout.LayoutParams
+        params.marginStart = x.toInt() -90
+        params.topMargin = y.toInt() -45
+        binding.btn333.layoutParams = params
+
+    //  example below not possible (no animation) because of attributions belong view, not viewGroup/layout
+    //        binding.myContainerAnimBtn.translationX = 600F
+    //        binding.myContainerAnimBtn.setX = 700f
     }
 }
